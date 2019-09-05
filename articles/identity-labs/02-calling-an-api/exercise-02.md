@@ -44,18 +44,20 @@ As mentioned earlier, the expenses API is still not secure. The next steps will 
 
 4. In your terminal, stop your API with `[CTRL]` + `[c]`.
 
-5. Install the `express-oauth2-bearer` npm package. This is an Express authentication middleware used to protect OAuth2 resources, which validates access tokens:
+5. Install the npm packages for the Express authentication middleware to protect OAuth2 resources using valid access tokens:
 
 ```bash
 # Make sure we're in the right directory
 ❯ pwd
 /Users/username/identity-102-exercises/lab-02/begin/api
 
-❯ npm install express-oauth2-bearer
+❯ npm install express-jwt express-jwt-authz jwks-rsa
 # Ignore any warnings
 
-+ express-oauth2-bearer@0.3.0
-added 128 packages in 7.625s
++ express-jwt@5.3.1
++ express-jwt-authz@2.3.1
++ jwks-rsa@1.6.0
+added 22 packages in 9.221s
 ```
 
 6. Open the `api/api-server.js` file and add a statement to import the library. Make sure this is added after the dotenv require statement:
@@ -67,7 +69,9 @@ require('dotenv').config();
 // ... other require statements
 
 // Add the code below 👇
-const { auth, requiredScopes } = require('express-oauth2-bearer');
+const jwt = require('express-jwt');
+const jwtAuthz = require('express-jwt-authz');
+const jwksRsa = require('jwks-rsa');
 ```
 
 7. Configure the Express app to use the authentication middleware for all requests:
@@ -79,7 +83,17 @@ const { auth, requiredScopes } = require('express-oauth2-bearer');
 const app = express();
 
 // Add the code below 👇
-app.use(auth());
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    jwksUri: `${process.env.ISSUER_BASE_URL}/.well-known/jwks.json`
+  }),
+  issuer: process.env.ISSUER_BASE_URL + '/',
+  audience: process.env.ALLOWED_AUDIENCES,
+  algorithms: [ 'RS256' ]
+});
+
+const checkJwtScopes = jwtAuthz([ 'read:reports' ]);
 ```
 
 8. Find the `/` endpoint code and update it to require the `read:reports` scope in access tokens. This is done by adding a `requiredScopes` middleware, as shown below:
@@ -88,7 +102,7 @@ app.use(auth());
 // lab-02/begin/api/api-server.js
 
 // Change the line below 👇
-app.get('/', requiredScopes('read:reports'), (req, res) => {
+app.get('/', checkJwt, checkJwtScopes, (req, res) => {
     // ... leave the endpoint contents unchanged.
 });
 ```

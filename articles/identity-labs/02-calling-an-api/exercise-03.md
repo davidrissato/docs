@@ -116,10 +116,10 @@ This change will update your endpoint to check if the `tokenSet` is expired. If 
 ```js
 // api/api-server.js
 
-app.get('/', requiredScopes('read:reports'), (req, res) => {
+app.get('/', checkJwt, checkJwtScopes, (req, res) => {
 
   // Add the code below 👇
-  console.log(new Date(req.auth.claims.iat * 1000));
+  console.log(new Date(req.user.iat * 1000));
 
   // ...
 });

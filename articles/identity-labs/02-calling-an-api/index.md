@@ -17,7 +17,7 @@ contentType:
 This lab covers the process for adding sign-in to a basic Node.js application and calling an API. This lab is the same exercise we provide for new employees in a technical role here at Auth0.
 
 ::: warning
-The Node OIDC and bearer token npm packages that this lab uses has not been tested, licensed, or officially released and should not be used in production.
+The Node OIDC package that this lab uses has not been tested, licensed, or officially released and should not be used in production.
 :::
 
 ## Prerequisites
